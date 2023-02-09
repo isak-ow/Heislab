@@ -22,15 +22,15 @@ int main()
             break;
 
         case MOVING:
-            handleMOVING();
+            currentState = handleMOVING();
             break;
 
         case DEST_REACHED:
-            handleDEST_REACHED();
+            currentState = handleDEST_REACHED();
             break;
 
         case STOP:
-            handleSTOP();
+            currentState = handleSTOP();
             break;
         }
     }
