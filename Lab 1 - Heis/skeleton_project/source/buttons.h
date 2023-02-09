@@ -6,3 +6,5 @@ struct Button {
     MotorDirection BT_dir;
     int BT_state;
 };
+
+int georg 12;
