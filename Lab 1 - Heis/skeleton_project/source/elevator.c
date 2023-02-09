@@ -1,14 +1,16 @@
 #include "elevator.h"
+#include "buttons.h"
 
-int check_requests()
+Button check_requests(Elevator e)
 {
     for (int floor = 0; floor < 3; floor++)
     {
         for (int button = 0; button < 2; button++)
         {
-            if (queue[floor][button])
+            if (e.queue[floor][button])
             {
-                return floor,button ;
+                Button b = Button{button, floor, queue[floor][button]}; 
+                return b;
             }
         }
     }
