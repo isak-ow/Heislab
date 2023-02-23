@@ -1,8 +1,12 @@
-#include "Lab_1_Heis/skeleton_project/source/driver/elevio.h"
+#pragma once
+#include "driver/elevio.h"
 
-struct Button {
+typedef struct{
     ButtonType BT_type;
     int BT_floor;
-    MotorDirection BT_dir;
     int BT_state;
-};
+}Button;
+
+void setButtonLight(int on_off);
+void saveButtonStates();
+void turnOffAllLights();
