@@ -5,19 +5,10 @@
 #include "FSM.h"
 
 int main()
-{
-
-    // elevio_init();
-    State currentState = IDLE;
-    Elevator elev;
-    
+{  
     elevio_init();
+    reset_FSM();
     
-    printf("=== Example Program ===\n");
-    printf("Press the stop button on the elevator panel to exit\n");
-
-    elevio_motorDirection(DIRN_STOP);
-    printf("beforre\n");
 
     while (1)
     {
