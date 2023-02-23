@@ -1,7 +1,7 @@
 #pragma once
 #include "driver/elevio.h"
 
-typedef struct{
+typedef struct Button{
     ButtonType BT_type;
     int BT_floor;
     int BT_state;

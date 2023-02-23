@@ -1,44 +1,49 @@
 #include "elevator.h"
 #include <unistd.h>
 
-void update_queue(Elevator* e)
+Elevator* elevator_init()
 {
-    for (int floor = 0; floor < 3; floor++)
+    Elevator e;
+    e.current_dir = DIRN_STOP;
+    e.current_floor = elevio_floorSensor();
+    e.Stop = 0;
+
+    for (int floor = 0; floor < 4; floor++) //initializing queue
     {
-        for (int button = 0; button < 2; button++)
+        for (int button = BUTTON_HALL_UP; button <= BUTTON_CAB; button++) //hope this works
         {
-            printf("inside loop\n");
-            if (elevio_callButton(floor, e->queue[floor][button].BT_type))
-            {   
-                e->queue[floor][button].BT_state = 1;
-                elevio_buttonLamp(floor, e->queue[floor][button].BT_type,1);
-            }
+            e.queue[floor][button].BT_state = 0;
+            e.queue[floor][button].BT_floor = floor+1;
+            e.queue[floor][button].BT_type = button;
         }
     }
+
+    return &e;
 }
 
-void update_elevator(Elevator* e) //fix this
+void update_elevator(Elevator* e, State* state)
 {
-    printf("beforeeleviofloorsensor\n");
     e->current_floor = elevio_floorSensor();
-    printf("beforeeleviostopbutton\n");
+
     e->Stop = elevio_stopButton();
-    printf("beforeforloop\n");
-    for (int floor = 0; floor < 3; floor++)
+    if (elevio_stopButton())
+    {*state = STOP;}
+
+    for (int floor = 0; floor < 4; floor++)
     {
-        for (int button = 0; button < 2; button++)
+        for (int button = 0; button < 3; button++)
         {
-            printf("insideloop\n");
-            e->queue[floor][button].BT_state = elevio_callButton(floor, button);
+            if(elevio_callButton(floor+1,e->queue[floor][button].BT_type))
+            e->queue[floor][button].BT_state = elevio_callButton(floor+1, e->queue[floor][button].BT_type);
         }
     }
 }
 
 int check_queue_empty(Elevator* e)
 {
-    for (int floor = 0; floor < 3; floor++)
+    for (int floor = 0; floor < 4; floor++)
     {
-        for (int button = 0; button < 2; button++)
+        for (int button = 0; button < 3; button++)
         {
             if (e->queue[floor][button].BT_state == 1)
             {  
@@ -55,9 +60,9 @@ void move_elevator(Elevator* e, MotorDirection Dir)
     elevio_motorDirection(Dir);
 }
 
-void delete_queue_ELM(Elevator* e){
-    e->queue[e->current_floor][e->current_dir].BT_state = 0;
-    elevio_buttonLamp(e->current_floor,e->queue[e->current_floor][e->current_dir].BT_type, 0);
+void delete_queue_ELM(Elevator* e, int floor, int button){
+    e->queue[floor][button].BT_state = 0;
+    elevio_buttonLamp(floor,e->queue[floor][button].BT_type,0);
 }
 
 
@@ -67,6 +72,7 @@ void open_door(Elevator* e)
     sleep(3);
     while (elevio_obstruction())
     {
+        //maybe call update_elevator so you can press while door is open
         continue;
     }
     elevio_doorOpenLamp(0);
@@ -76,7 +82,7 @@ int check_req_floor(Elevator* e)
 {
     for (int i = 0; i < 3; i++)
     {
-        if (e->queue[e->current_floor][i].BT_state)
+        if (e->queue[e->current_floor-1][i].BT_state)
         {
             return 1;
         }

@@ -1,42 +1,48 @@
 #include "FSM.h"
 
-State handleIDLE(Elevator* e)
+void reset_FSM()
 {
-    printf("idle\n");
-    if (elevio_stopButton())
+    elevio_doorOpenLamp(0);
+    turnOffAllLights();
+    while (elevio_floorSensor() == -1)
     {
-        return STOP;
+        elevio_motorDirection(DIRN_DOWN); // assume elevator starts at floor 1 or above
     }
+    elevio_motorDirection(DIRN_STOP);
+}
 
-    if (check_queue_empty(e)) 
-    {
-        printf("returned empty");
-        return IDLE;
-    }
-
+State handleIDLE(Elevator *e)
+{
     if (check_req_floor(e))
     {
         return DEST_REACHED;
     }
+
+    else if (check_queue_empty(e))
+    {
+        printf("no new requests");
+        return IDLE;
+    }
+
     else
     {
         return MOVING;
     }
 }
 
-State handleMOVING(Elevator* e) //needs some work
+State handleMOVING(Elevator *e) // needs some work
 {
-       if ((e->queue[e->current_floor][BUTTON_CAB].BT_state)) 
+    if ((e->queue[e->current_floor][BUTTON_CAB].BT_state))
     {
         return DEST_REACHED;
     }
 
-    if ((e->current_dir == DIRN_UP) && (e->queue[e->current_floor][BUTTON_HALL_UP].BT_state)) 
+    if ((e->current_dir == DIRN_UP) && (e->queue[e->current_floor][BUTTON_HALL_UP].BT_state))
     {
         return DEST_REACHED;
     }
 
-    if ((e->current_dir == DIRN_DOWN) && (e->queue[e->current_floor][BUTTON_HALL_DOWN].BT_state)) 
+    if ((e->current_dir == DIRN_DOWN) && (e->queue[e->current_floor][BUTTON_HALL_DOWN].BT_state))
     {
         return DEST_REACHED;
     }
@@ -59,28 +65,31 @@ State handleMOVING(Elevator* e) //needs some work
     return MOVING;
 }
 
-State handleDEST_REACHED(Elevator* e)
+State handleDEST_REACHED(Elevator *e)
 {
-    if (e->Stop)
+    elevio_motorDirection(DIRN_STOP);
+
+    if (e->current_dir == DIRN_UP)
     {
-        return STOP;
+        delete_queue_ELM(e, e->current_floor, BUTTON_HALL_UP);
     }
 
-    delete_queue_ELM(e);
-    move_elevator(e,DIRN_STOP);
+    else if (e->current_dir == DIRN_DOWN)
+    {
+        delete_queue_ELM(e, e->current_floor, BUTTON_HALL_DOWN);
+    }
 
     open_door(e);
 
     if (check_queue_empty(e))
     {
-        e->current_dir = DIRN_STOP;
         return IDLE;
     }
 
     return MOVING;
 }
 
-State handleSTOP(Elevator* e)
+State handleSTOP(Elevator *e)
 {
     return STOP;
 }
